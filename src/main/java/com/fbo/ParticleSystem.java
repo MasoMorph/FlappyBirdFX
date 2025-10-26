@@ -51,7 +51,7 @@ public class ParticleSystem {
             this.x = x; this.y = y; this.vx = vx; this.vy = vy; this.life = life; this.maxLife = life; this.color = color;
         }
         void update(double dt) {
-            vy += 900 * dt; // gravity (px/s^2)
+            vy += 900 * dt; // gravity 
             x += vx * dt;
             y += vy * dt;
             life -= dt;
@@ -105,7 +105,7 @@ public class ParticleSystem {
 
         @Override
         public void render(GraphicsContext gc) {
-            // glow phase
+            // glow 
             if (time <= glowDuration) {
                 double t = Math.min(1.0, time / glowDuration);
                 double eased = easeOutCubic(t);
@@ -117,7 +117,7 @@ public class ParticleSystem {
                 gc.setGlobalAlpha(1.0);
             }
 
-            // streak phase
+            // streak 
             if (time > glowDuration && time <= glowDuration + streakDuration) {
                 double local = (time - glowDuration) / streakDuration;
                 double alpha = Math.max(0.0, 1.0 - local);
