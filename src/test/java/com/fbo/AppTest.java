@@ -9,7 +9,6 @@ public class AppTest {
 
     @Test
     void appShouldBeTrue() {
-        // Assertions are now called statically from org.junit.jupiter.api.Assertions
         assertTrue(true, "The test assertion failed.");
     }
 }
