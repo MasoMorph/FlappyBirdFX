@@ -24,7 +24,7 @@ public class AssetManager {
     public Image logo;
     public Image interstitialPlaceholder;
 
-    // Simple button images
+    // buttons
     public Image buttonNormal;
     public Image buttonPressed;
 
@@ -45,7 +45,7 @@ public class AssetManager {
         pipeCapBottom = loadImage("/images/pipe_cap_bottom.png");
         particle = loadImage("/images/xp.png");
 
-        // Load simple button images
+        // Load buttons
         buttonNormal = loadImage("/ui_pack/button1.png");
         buttonPressed = loadImage("/ui_pack/button2.png");
 
