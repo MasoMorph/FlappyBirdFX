@@ -2,11 +2,12 @@ package com.fbo;
 
 import com.fbo.graphics.AssetManager;
 import javafx.geometry.Insets;
-import javafx.scene.CacheHint;
 import javafx.scene.Scene;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -35,7 +36,7 @@ public final class UI {
     public static String hoveredButtonId = null;
     public static String pressedButtonId = null;
 
-    public static void renderParallaxBackground(javafx.scene.canvas.GraphicsContext gc, double w, double h, AssetManager assets, double totalTime) {
+    public static void renderParallaxBackground(GraphicsContext gc, double w, double h, AssetManager assets, double totalTime) {
         gc.setFill(Color.SKYBLUE);
         gc.fillRect(0, 0, w, h);
 
@@ -67,7 +68,7 @@ public final class UI {
 
             double speed = 60.0;
             double xOffset = (totalTime * speed) % drawW;
-            double y = (h - drawDHEstimate(drawH));
+            double y = (h - drawH);
             gc.save();
             for (double x = -xOffset; x < w; x += drawW) {
                 gc.drawImage(bg1, x, y, drawW, drawH);
@@ -75,21 +76,20 @@ public final class UI {
             gc.restore();
         }
     }
-    private static double drawDHEstimate(double drawH) {
-        return drawH;
-    }
 
     private static Font uiLarge(AssetManager assets) {
         return (assets != null && assets.uiLarge != null) ? assets.uiLarge : Font.font("Arial", 72);
     }
+
     private static Font uiMedium(AssetManager assets) {
         return (assets != null && assets.uiMedium != null) ? assets.uiMedium : Font.font("Arial", 36);
     }
+
     private static Font uiSmall(AssetManager assets) {
         return (assets != null && assets.uiSmall != null) ? assets.uiSmall : Font.font("Arial", 20);
     }
 
-    public static void renderHUD(javafx.scene.canvas.GraphicsContext gc, double w, double h, int score, String user, AssetManager assets) {
+    public static void renderHUD(GraphicsContext gc, double w, double h, int score, String user, AssetManager assets) {
         gc.setFill(Color.WHITE);
         gc.setFont(uiLarge(assets));
         gc.setTextAlign(TextAlignment.CENTER);
@@ -100,7 +100,7 @@ public final class UI {
         gc.fillText("Player: " + user, 20, 30);
     }
 
-    public static void renderGameOver(javafx.scene.canvas.GraphicsContext gc, double w, double h, int score, int highscore, AssetManager assets) {
+    public static void renderGameOver(GraphicsContext gc, double w, double h, int score, int highscore, AssetManager assets) {
         gc.setFill(Color.rgb(0, 0, 0, 0.7));
         gc.fillRect(0, 0, w, h);
 
@@ -119,7 +119,7 @@ public final class UI {
         gc.fillText("Press ESC to change user", w / 2, h / 2 + 180);
     }
 
-    public static void renderHighscorePage(javafx.scene.canvas.GraphicsContext gc, double w, double h, java.util.HashMap<String, Integer> highscores, String currentUser, AssetManager assets) {
+    public static void renderHighscorePage(GraphicsContext gc, double w, double h, java.util.HashMap<String, Integer> highscores, String currentUser, AssetManager assets) {
         gc.setFill(Color.rgb(0, 0, 0, 0.8));
         gc.fillRect(0, 0, w, h);
 
@@ -144,7 +144,7 @@ public final class UI {
         gc.fillText("Press CTRL to return", w / 2, h - 50);
     }
 
-    public static void renderPauseOverlay(javafx.scene.canvas.GraphicsContext gc, double w, double h, AssetManager assets) {
+    public static void renderPauseOverlay(GraphicsContext gc, double w, double h, AssetManager assets) {
         gc.setFill(Color.rgb(0, 0, 0, 0.5));
         gc.fillRect(0, 0, w, h);
 
@@ -157,29 +157,67 @@ public final class UI {
         gc.fillText("Press ESC or SPACE to resume", w / 2, h / 2 + 60);
     }
 
-    public static void renderInterstitial(javafx.scene.canvas.GraphicsContext gc, double w, double h, AssetManager assets) {
-        gc.setFill(Color.rgb(20, 20, 40));
-        gc.fillRect(0, 0, w, h);
+    public static void drawButtonFromSheet(GraphicsContext gc, String buttonType, String state,
+                                         double x, double y, double w, double h, AssetManager assets) {
+        ImageView sprite = assets.getButton(state);
+        if (sprite != null && sprite.getImage() != null) {
+            Image buttonImage = sprite.getImage();
 
-        gc.setFill(Color.CYAN);
-        gc.setFont(uiLarge(assets));
-        gc.setTextAlign(TextAlignment.CENTER);
-        gc.fillText("BONUS ROUND!", w / 2, h / 2 - 50);
-
-        gc.setFont(uiMedium(assets));
-        gc.setFill(Color.WHITE);
-        gc.fillText("Get ready for increased speed!", w / 2, h / 2 + 20);
+            // Just draw the button at the specified dimensions without scaling
+            gc.drawImage(buttonImage, x, y, w, h);
+        } else {
+            // Fallback to colored rectangle
+            drawFallbackButton(gc, buttonType, state, x, y, w, h);
+        }
     }
 
-    public static void renderDifficultyButtons(javafx.scene.canvas.GraphicsContext gc, double w, double h, AssetManager assets) {
+    private static void drawFallbackButton(GraphicsContext gc, String buttonType, String state,
+                                         double x, double y, double w, double h) {
+        Color baseColor = getButtonColor(buttonType);
+        Color fill = state.equals("pressed") ? baseColor.darker() : baseColor;
+
+        gc.setFill(fill);
+        gc.fillRoundRect(x, y, w, h, 14, 14);
+    }
+
+    private static Color getButtonColor(String buttonType) {
+        switch (buttonType) {
+            case "start": return Color.web("#66CCFF");
+            case "difficulty": return Color.web("#FFD66B");
+            case "restart": return Color.web("#76c893");
+            case "quit": return Color.web("#F07167");
+            default: return Color.web("#66CCFF");
+        }
+    }
+
+    private static void drawButtonText(GraphicsContext gc, String text, double x, double y,
+                                       double w, double h, boolean hovered, boolean pressed,
+                                       AssetManager assets) {
+        // Use smaller font for button text
+        Font buttonFont = Font.font(uiMedium(assets).getFamily(), 20); // Smaller text
+        gc.setFont(buttonFont);
+        gc.setTextAlign(TextAlignment.CENTER);
+
+        double textX = x + w / 2.0;
+        double textY = y + h / 2.0 + 6; // Adjusted vertical centering
+
+        // Plain yellow text when hovered or pressed, white otherwise
+        if (hovered || pressed) {
+            gc.setFill(Color.YELLOW);
+        } else {
+            gc.setFill(Color.WHITE);
+        }
+        gc.fillText(text, textX, textY);
+    }
+
+    public static void renderDifficultyButtons(GraphicsContext gc, double w, double h, AssetManager assets) {
         double buttonY = 50;
-        double buttonX = w - 180;
-        double buttonW = 150;
-        double buttonH = 40;
-        double spacing = 50;
+        double buttonX = w - 140; // Smaller width
+        double buttonW = 120; // Smaller buttons
+        double buttonH = 35;  // Smaller buttons
+        double spacing = 45;
 
         String[] labels = {"Easy", "Normal", "Hard"};
-        javafx.scene.paint.Color[] colors = {javafx.scene.paint.Color.web("#76c893"), javafx.scene.paint.Color.web("#FFD66B"), javafx.scene.paint.Color.web("#F07167")};
 
         for (int i = 0; i < labels.length; i++) {
             double by = buttonY + i * spacing;
@@ -187,26 +225,19 @@ public final class UI {
             boolean hovered = id.equals(hoveredButtonId);
             boolean pressed = id.equals(pressedButtonId);
 
-            javafx.scene.paint.Color base = colors[i];
-            javafx.scene.paint.Color fill = hovered ? base.brighter() : base;
-            double inset = pressed ? 4.0 : 0.0;
+            String state = pressed ? "pressed" : "normal";
 
-            gc.setFill(fill);
-            gc.fillRoundRect(buttonX + inset, by + inset, buttonW - inset * 2, buttonH - inset * 2, 8, 8);
-
-            gc.setFill(javafx.scene.paint.Color.BLACK);
-            gc.setFont(Font.font("Arial", 18));
-            gc.setTextAlign(TextAlignment.CENTER);
-            gc.fillText(labels[i], buttonX + buttonW / 2, by + 27);
+            drawButtonFromSheet(gc, "difficulty", state, buttonX, by, buttonW, buttonH, assets);
+            drawButtonText(gc, labels[i], buttonX, by, buttonW, buttonH, hovered, pressed, assets);
         }
     }
 
     public static int difficultyButtonIndexAt(double mx, double my, double w, double h) {
         double buttonY = 50;
-        double buttonX = w - 180;
-        double buttonW = 150;
-        double buttonH = 40;
-        double spacing = 50;
+        double buttonX = w - 140;
+        double buttonW = 120;
+        double buttonH = 35;
+        double spacing = 45;
         for (int i = 0; i < 3; i++) {
             double by = buttonY + i * spacing;
             if (mx >= buttonX && mx <= buttonX + buttonW && my >= by && my <= by + buttonH)
@@ -266,7 +297,7 @@ public final class UI {
         });
     }
 
-    public static void renderMainMenu(javafx.scene.canvas.GraphicsContext gc, double w, double h, AssetManager assets) {
+    public static void renderMainMenu(GraphicsContext gc, double w, double h, AssetManager assets) {
         mainMenuButtons.clear();
 
         gc.setFill(Color.rgb(10, 12, 20, 0.6));
@@ -293,11 +324,11 @@ public final class UI {
         }
 
         String[] labels = {"Start Game", "Difficulty", "Change Player", "Quit"};
-        double buttonW = Math.min(360, w * 0.55);
-        double buttonH = 60;
+        double buttonW = Math.min(280, w * 0.45); // Smaller width
+        double buttonH = 50; // Smaller height
         double bx = (w - buttonW) / 2.0;
         double byStart = logoY + 6;
-        double spacing = 18;
+        double spacing = 12; // Smaller spacing
 
         for (int i = 0; i < labels.length; i++) {
             double by = byStart + i * (buttonH + spacing);
@@ -305,29 +336,17 @@ public final class UI {
             boolean hovered = id.equals(hoveredButtonId);
             boolean pressed = id.equals(pressedButtonId);
 
-            Color bg = switch (i) {
-                case 0 -> Color.web("#66CCFF");
-                case 1 -> Color.web("#FFD66B");
-                case 2 -> Color.web("#76c893");
-                default -> Color.web("#F07167");
-            };
+            String state = pressed ? "pressed" : "normal";
 
-            Color fill = hovered ? bg.brighter() : bg;
-            double inset = pressed ? 4.0 : 0.0;
-
-            gc.setFill(fill);
-            gc.fillRoundRect(bx + inset, by + inset, buttonW - inset * 2, buttonH - inset * 2, 14, 14);
-
-            gc.setFill(Color.WHITE);
-            gc.setFont(uiMedium(assets));
-            gc.setTextAlign(TextAlignment.CENTER);
-            gc.fillText(labels[i], bx + buttonW / 2.0, by + buttonH / 2.0 + 10);
+            drawButtonFromSheet(gc, "start", state, bx, by, buttonW, buttonH, assets);
+            drawButtonText(gc, labels[i], bx, by, buttonW, buttonH, hovered, pressed, assets);
 
             mainMenuButtons.add(new MenuButton(id, bx, by, buttonW, buttonH));
         }
 
         gc.setFill(Color.rgb(255,255,255,0.85));
         gc.setFont(uiSmall(assets));
+        gc.setTextAlign(TextAlignment.CENTER);
         gc.fillText("Press M anytime to return to this menu. Use ESC to change user.", w / 2, byStart + labels.length * (buttonH + spacing) + 28);
 
         renderDifficultyButtons(gc, w, h, assets);

@@ -251,20 +251,20 @@ public class FlappyBirdFX extends Application {
             for (UI.MenuButton mb : UI.mainMenuButtons) {
                 if (pressed.equals(mb.id)) {
                     switch (mb.id) {
-                        case "start-game" -> {
+                        case "start-game":
                             resetGame();
                             showMainMenu = false;
                             paused = false;
-                        }
-                        case "difficulty" -> {
+                            break;
+                        case "difficulty":
                             UI.showDifficultyModal(primaryStageRef, this::setDifficulty, assets);
-                        }
-                        case "change-player" -> {
+                            break;
+                        case "change-player":
                             changeUser();
-                        }
-                        case "quit" -> {
+                            break;
+                        case "quit":
                             Platform.exit();
-                        }
+                            break;
                     }
                     return;
                 }

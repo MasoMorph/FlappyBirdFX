@@ -1,7 +1,6 @@
 package com.fbo.graphics;
 
 import com.fbo.util.ResourceUtils;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.media.Media;
@@ -9,8 +8,6 @@ import javafx.scene.text.Font;
 
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
 
 public class AssetManager {
     private static final AssetManager INSTANCE = new AssetManager();
@@ -27,15 +24,9 @@ public class AssetManager {
     public Image logo;
     public Image interstitialPlaceholder;
 
-    private Image buttonsSheet;
-    private Image iconsSheet;
-    private Image hudSheet;
-    private Image windowsSheet;
-
-    private final Map<String, Rectangle2D> buttonViewports = new HashMap<>();
-    private final Map<String, Rectangle2D> iconViewports = new HashMap<>();
-    private final Map<String, Rectangle2D> hudViewports = new HashMap<>();
-    private final Map<String, Rectangle2D> windowViewports = new HashMap<>();
+    // Simple button images
+    public Image buttonNormal;
+    public Image buttonPressed;
 
     public Font uiLarge;
     public Font uiMedium;
@@ -52,58 +43,25 @@ public class AssetManager {
         pipeTexture = loadImage("/images/dirt.png");
         pipeCapTop = loadImage("/images/pipe_cap_top.png");
         pipeCapBottom = loadImage("/images/pipe_cap_bottom.png");
-        particle = loadImage("/images/particle.png");
+        particle = loadImage("/images/xp.png");
 
-        buttonsSheet = loadImage("/ui_pack/buttons.png");
-        iconsSheet = loadImage("/ui_pack/icons.png");
-        hudSheet = loadImage("/ui_pack/hud.png");
-        windowsSheet = loadImage("/ui_pack/windows.png");
+        // Load simple button images
+        buttonNormal = loadImage("/ui_pack/button1.png");
+        buttonPressed = loadImage("/ui_pack/button2.png");
 
-        setupButtonViewports();
-        setupIconViewports();
-        setupHudViewports();
-        setupWindowViewports();
+        logo = loadImage("/images/logo.png");
+        interstitialPlaceholder = loadImage("/images/logo.png");
 
         loadFonts();
         loadInterstitialVideo("/videos/interstitial.mp4");
     }
 
-    private void setupButtonViewports() {
-        buttonViewports.put("resume_normal", new Rectangle2D(0, 0, 200, 50));
-        buttonViewports.put("resume_hover", new Rectangle2D(0, 50, 200, 50));
-        buttonViewports.put("resume_pressed", new Rectangle2D(0, 100, 200, 50));
-        buttonViewports.put("restart_normal", new Rectangle2D(200, 0, 200, 50));
-        buttonViewports.put("restart_hover", new Rectangle2D(200, 50, 200, 50));
-        buttonViewports.put("restart_pressed", new Rectangle2D(200, 100, 200, 50));
-    }
-
-    private void setupIconViewports() {
-        iconViewports.put("sword", new Rectangle2D(0, 0, 64, 64));
-        iconViewports.put("shield", new Rectangle2D(64, 0, 64, 64));
-        iconViewports.put("potion", new Rectangle2D(128, 0, 64, 64));
-    }
-
-    private void setupHudViewports() {
-        hudViewports.put("health_bar", new Rectangle2D(0, 0, 200, 30));
-        hudViewports.put("mana_bar", new Rectangle2D(0, 30, 200, 30));
-        hudViewports.put("exp_meter", new Rectangle2D(0, 60, 200, 20));
-    }
-
-    private void setupWindowViewports() {
-        windowViewports.put("settings_window", new Rectangle2D(0, 0, 400, 300));
-        windowViewports.put("shop_window", new Rectangle2D(0, 300, 400, 300));
-        windowViewports.put("inventory_window", new Rectangle2D(400, 0, 400, 300));
-    }
-
-    public ImageView getButton(String name) { return createView(buttonsSheet, buttonViewports.get(name)); }
-    public ImageView getIcon(String name) { return createView(iconsSheet, iconViewports.get(name)); }
-    public ImageView getHud(String name) { return createView(hudSheet, hudViewports.get(name)); }
-    public ImageView getWindow(String name) { return createView(windowsSheet, windowViewports.get(name)); }
-
-    private ImageView createView(Image sheet, Rectangle2D viewport) {
-        if (sheet == null || viewport == null) return null;
-        ImageView iv = new ImageView(sheet);
-        iv.setViewport(viewport);
+    public ImageView getButton(String state) {
+        Image buttonImage = "pressed".equals(state) ? buttonPressed : buttonNormal;
+        if (buttonImage == null) {
+            return null;
+        }
+        ImageView iv = new ImageView(buttonImage);
         return iv;
     }
 
@@ -114,8 +72,12 @@ public class AssetManager {
                 uiLarge = Font.font(f.getFamily(), 72);
                 uiMedium = Font.font(f.getFamily(), 36);
                 uiSmall = Font.font(f.getFamily(), 20);
-            } else setDefaultFonts();
-        } catch (Exception e) { setDefaultFonts(); }
+            } else {
+                setDefaultFonts();
+            }
+        } catch (Exception e) {
+            setDefaultFonts();
+        }
     }
 
     private void setDefaultFonts() {
@@ -126,16 +88,26 @@ public class AssetManager {
 
     private Image loadImage(String path) {
         try (InputStream is = getClass().getResourceAsStream(path)) {
-            if (is == null) return null;
-            return new Image(is);
-        } catch (Exception e) { return null; }
+            if (is == null) {
+                System.err.println("Resource not found: " + path);
+                return null;
+            }
+            Image image = new Image(is);
+            System.out.println("Loaded: " + path + " (" + image.getWidth() + "x" + image.getHeight() + ")");
+            return image;
+        } catch (Exception e) {
+            System.err.println("Failed to load image: " + path + " - " + e.getMessage());
+            return null;
+        }
     }
 
     private void loadInterstitialVideo(String path) {
         try {
             Path tmp = ResourceUtils.copyResourceToTemp(path, ".mp4");
             if (tmp != null) interstitialVideo = new Media(tmp.toUri().toString());
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            System.err.println("Failed to load video: " + e.getMessage());
+        }
     }
 
     public void setDifficultyMultiplier(double m){ difficultyMultiplier = m; }
