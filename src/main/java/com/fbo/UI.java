@@ -163,10 +163,8 @@ public final class UI {
         if (sprite != null && sprite.getImage() != null) {
             Image buttonImage = sprite.getImage();
 
-            // Just draw the button at the specified dimensions without scaling
             gc.drawImage(buttonImage, x, y, w, h);
         } else {
-            // Fallback to colored rectangle
             drawFallbackButton(gc, buttonType, state, x, y, w, h);
         }
     }
@@ -193,15 +191,13 @@ public final class UI {
     private static void drawButtonText(GraphicsContext gc, String text, double x, double y,
                                        double w, double h, boolean hovered, boolean pressed,
                                        AssetManager assets) {
-        // Use smaller font for button text
-        Font buttonFont = Font.font(uiMedium(assets).getFamily(), 20); // Smaller text
+        Font buttonFont = Font.font(uiMedium(assets).getFamily(), 20);
         gc.setFont(buttonFont);
         gc.setTextAlign(TextAlignment.CENTER);
 
         double textX = x + w / 2.0;
-        double textY = y + h / 2.0 + 6; // Adjusted vertical centering
+        double textY = y + h / 2.0 + 6;
 
-        // Plain yellow text when hovered or pressed, white otherwise
         if (hovered || pressed) {
             gc.setFill(Color.YELLOW);
         } else {
@@ -212,9 +208,9 @@ public final class UI {
 
     public static void renderDifficultyButtons(GraphicsContext gc, double w, double h, AssetManager assets) {
         double buttonY = 50;
-        double buttonX = w - 140; // Smaller width
-        double buttonW = 120; // Smaller buttons
-        double buttonH = 35;  // Smaller buttons
+        double buttonX = w - 140; 
+        double buttonW = 120; 
+        double buttonH = 35;  
         double spacing = 45;
 
         String[] labels = {"Easy", "Normal", "Hard"};
@@ -324,11 +320,11 @@ public final class UI {
         }
 
         String[] labels = {"Start Game", "Difficulty", "Change Player", "Quit"};
-        double buttonW = Math.min(280, w * 0.45); // Smaller width
-        double buttonH = 50; // Smaller height
+        double buttonW = Math.min(280, w * 0.45); 
+        double buttonH = 50; 
         double bx = (w - buttonW) / 2.0;
         double byStart = logoY + 6;
-        double spacing = 12; // Smaller spacing
+        double spacing = 12; 
 
         for (int i = 0; i < labels.length; i++) {
             double by = byStart + i * (buttonH + spacing);
